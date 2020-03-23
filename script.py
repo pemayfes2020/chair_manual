@@ -101,7 +101,7 @@ def pwm4WriteL(duty1, commandID):
     GPIO.digitalWrite(inl3, GPIO.HIGH)
     GPIO.digitalWrite(inl4, GPIO.LOW)
 @webiopi.macro
-def pwm4WriteBrake(duty1, commandID):
+def pwm4WriteBrake(commandID):
     GPIO.pwmWrite(inr1, float(0))
     GPIO.pwmWrite(inr2, float(0))
     GPIO.digitalWrite(inr3, GPIO.HIGH)
