@@ -30,14 +30,14 @@ def setup():
     GPIO.setFunction(inl3, GPIO.OUT)
     GPIO.setFunction(inl4, GPIO.OUT)
     # 初期のデューティー比を0%に（静止状態）
-    GPIO.pwmWrite(in1, 0)
-    GPIO.pwmWrite(in2, 0)
-    GPIO.digitalWrite(in3, GPIO.LOW)
-    GPIO.digitalWrite(in4, GPIO.LOW)
-    GPIO.pwmWrite(in1, 0)
-    GPIO.pwmWrite(in2, 0)
-    GPIO.digitalWrite(in3, GPIO.LOW)
-    GPIO.digitalWrite(in4, GPIO.LOW)
+    GPIO.pwmWrite(inr1, 0)
+    GPIO.pwmWrite(inr2, 0)
+    GPIO.digitalWrite(inr3, GPIO.LOW)
+    GPIO.digitalWrite(inr4, GPIO.LOW)
+    GPIO.pwmWrite(inl1, 0)
+    GPIO.pwmWrite(inl2, 0)
+    GPIO.digitalWrite(inl3, GPIO.LOW)
+    GPIO.digitalWrite(inl4, GPIO.LOW)
 
 # WebIOPiにより繰り返される関数
 def loop():
@@ -59,9 +59,55 @@ def destroy():
 # 4つのPWMにデューティー比をまとめてセットするためのマクロ
 # commandIDは、iOSのSafariでPOSTがキャッシュされることへの対策
 @webiopi.macro
-def pwm4Write(duty1, duty2, duty3, duty4, commandID):
+def pwm4WriteF(duty1, duty2, commandID):
+    GPIO.pwmWrite(inr1, float(0))
+    GPIO.pwmWrite(inr2, float(duty1))
+    GPIO.digitalWrite(inr3, GPIO.HIGH)
+    GPIO.digitalWrite(inr4, GPIO.LOW)
+    GPIO.pwmWrite(inl1, float(duty2))
+    GPIO.pwmWrite(inl2, float(0))
+    GPIO.digitalWrite(inl3, GPIO.LOW)
+    GPIO.digitalWrite(inl4, GPIO.HIGH)
+
+    
+@webiopi.macro
+def pwm4WriteB(duty1, duty2, commandID):
     GPIO.pwmWrite(inr1, float(duty1))
-    GPIO.pwmWrite(inr2, float(duty2))
-    GPIO.pwmWrite(inl1, float(duty3))
-    GPIO.pwmWrite(inl2, float(duty4))
+    GPIO.pwmWrite(inr2, float(0))
+    GPIO.digitalWrite(inr3, GPIO.LOW)
+    GPIO.digitalWrite(inr4, GPIO.HIGH)
+    GPIO.pwmWrite(inl1, float(0))
+    GPIO.pwmWrite(inl2, float(duty2))
+    GPIO.digitalWrite(inl3, GPIO.HIGH)
+    GPIO.digitalWrite(inl4, GPIO.LOW)
+@webiopi.macro
+def pwm4WriteR(duty1, commandID):
+    GPIO.pwmWrite(inr1, float(duty1))
+    GPIO.pwmWrite(inr2, float(0))
+    GPIO.digitalWrite(inr3, GPIO.LOW)
+    GPIO.digitalWrite(inr4, GPIO.HIGH)
+    GPIO.pwmWrite(inl1, float(duty1))
+    GPIO.pwmWrite(inl2, float(0))
+    GPIO.digitalWrite(inl3, GPIO.LOW)
+    GPIO.digitalWrite(inl4, GPIO.HIGH)
+@webiopi.macro
+def pwm4WriteL(duty1, commandID):
+    GPIO.pwmWrite(inr1, float(0))
+    GPIO.pwmWrite(inr2, float(duty1))
+    GPIO.digitalWrite(inr3, GPIO.HIGH)
+    GPIO.digitalWrite(inr4, GPIO.LOW)
+    GPIO.pwmWrite(inl1, float(0))
+    GPIO.pwmWrite(inl2, float(duty1))
+    GPIO.digitalWrite(inl3, GPIO.HIGH)
+    GPIO.digitalWrite(inl4, GPIO.LOW)
+@webiopi.macro
+def pwm4WriteBrake(duty1, commandID):
+    GPIO.pwmWrite(inr1, float(0))
+    GPIO.pwmWrite(inr2, float(0))
+    GPIO.digitalWrite(inr3, GPIO.HIGH)
+    GPIO.digitalWrite(inr4, GPIO.HIGH)
+    GPIO.pwmWrite(inl1, float(0))
+    GPIO.pwmWrite(inl2, float(0))
+    GPIO.digitalWrite(inl3, GPIO.HIGH)
+    GPIO.digitalWrite(inl4, GPIO.HIGH)
 

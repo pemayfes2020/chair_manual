@@ -55,15 +55,15 @@ window.onorientationchange = function()
 }
 
 // 前に送信したデューティー比を覚えておく
-var rate25Prev = 0;
-var rate24Prev = 0;
-var rate23Prev = 0;
+var rate12Prev = 0;
+var rate18Prev = 0;
+var rate27Prev = 0;
 var rate22Prev = 0;
 
 // デューティー比がth (0.0～1.0) 以上変化した時のみ値を送信
 var th = 0.1;
 // モーターの最大速度 (0.0～1.0)。モーターを保護する意味で1.0にはしない方が良い
-var maxSpeed = 0.8;
+var maxSpeed = 1.0;
 // 命令送信ごとに増加するIDを作成（iOSのSafariでPOSTがキャッシュされることの対策）
 var commandID = 0;
 
@@ -96,19 +96,19 @@ function touchEvent(e){
         var rate = maxSpeed*(mTouchOffsetLeft + mTouchWidth/3-touch.pageX)/(mTouchWidth/3);
 
         // 前回送信時と値が大きく違うときのみ送信
-        if(Math.abs(rate-rate24Prev)>th || Math.abs(rate-rate23Prev)>th){
-            webiopi().callMacro("pwm4Write", [0, rate, rate, 0, commandID++]);
-            rate25Prev = 0;
-            rate24Prev = rate;
-            rate23Prev = rate;
-            rate22Prev = 0;
+        if(Math.abs(rate-rate18Prev)>th || Math.abs(rate-rate27Prev)>th){
+            webiopi().callMacro("pwm4WriteL", [rate, commandID++]);
+            rate12Prev = 0;
+            rate18Prev = rate;
+            rate27Prev = 0;
+            rate22Prev = rate;
         }
     }else if(touch.pageX < mTouchOffsetLeft + 2*mTouchWidth/3){ // 前後移動
         // 左右の車輪の速さの違いの補正
         var modL = (1.2-0.8)*(touch.pageX - mTouchOffsetLeft - mTouchWidth/3)/(mTouchWidth/3) + 0.8;
         var modR = (0.8-1.2)*(touch.pageX - mTouchOffsetLeft - mTouchWidth/3)/(mTouchWidth/3) + 1.2;
 
-        if(touch.pageY < mTouchOffsetTop + mTouchHeight/2){
+        if(touch.pageY < mTouchOffsetTop + mTouchHeight/2){ //前進
             var rate = maxSpeed*(mTouchHeight/2 + mTouchOffsetTop - touch.pageY)/(mTouchHeight/2);
             modL *= rate;
             modR *= rate;
@@ -117,14 +117,14 @@ function touchEvent(e){
             if(modR > 1.0){ modR = 1.0; }
 
             // 前回送信時と値が大きく違うときのみ送信
-            if(Math.abs(modL-rate25Prev)>th || Math.abs(modR-rate23Prev)>th){
-                webiopi().callMacro("pwm4Write", [modL, 0, modR, 0, commandID++]);
-                rate25Prev = modL;
-                rate24Prev = 0;
-                rate23Prev = modR;
+            if(Math.abs(modL-rate12Prev)>th || Math.abs(modR-rate27Prev)>th){
+                webiopi().callMacro("pwm4WriteF", [modR, modL, commandID++]);
+                rate12Prev = 0;
+                rate18Prev = modR;
+                rate27Prev = modL;
                 rate22Prev = 0;
             }
-        }else{
+        }else{//後退
             var rate = maxSpeed*(touch.pageY - mTouchOffsetTop - mTouchHeight/2)/(mTouchHeight/2);
             modL *= rate;
             modR *= rate;
@@ -133,12 +133,12 @@ function touchEvent(e){
             if(modR > 1.0){ modR = 1.0; }
 
             // 前回送信時と値が大きく違うときのみ送信
-            if(Math.abs(modL-rate24Prev)>th || Math.abs(modR-rate22Prev)>th){
-                webiopi().callMacro("pwm4Write", [0, modL, 0, modR, commandID++]);
-                rate25Prev = 0;
-                rate24Prev = modL;
-                rate23Prev = 0;
-                rate22Prev = modR;
+            if(Math.abs(modL-rate18Prev)>th || Math.abs(modR-rate22Prev)>th){
+                webiopi().callMacro("pwm4WriteB", [modR, modL, commandID++]);
+                rate12Prev = modR;
+                rate18Prev = 0;
+                rate27Prev = 0;
+                rate22Prev = modL;
             }
         }
 
@@ -146,12 +146,12 @@ function touchEvent(e){
         var rate = maxSpeed*(touch.pageX - mTouchOffsetLeft - 2*mTouchWidth/3)/(mTouchWidth/3);
 
         // 前回送信時と値が大きく違うときのみ送信
-        if(Math.abs(rate-rate25Prev)>th || Math.abs(rate-rate22Prev)>th){
-            webiopi().callMacro("pwm4Write", [rate, 0, 0, rate, commandID++]);
-            rate25Prev = rate;
-            rate24Prev = 0;
-            rate23Prev = 0;
-            rate22Prev = rate;
+        if(Math.abs(rate-rate12Prev)>th || Math.abs(rate-rate22Prev)>th){
+            webiopi().callMacro("pwm4WriteR", [rate, commandID++]);
+            rate12Prev = rate;
+            rate18Prev = 0;
+            rate27Prev = rate;
+            rate22Prev = 0;
         }
     }
 
@@ -161,10 +161,10 @@ function touchEvent(e){
 function touchEndEvent(e){
     e.preventDefault();
 
-    webiopi().callMacro("pwm4Write", [0, 0, 0, 0, commandID++]);
-    rate25Prev = 0;
-    rate24Prev = 0;
-    rate23Prev = 0;
+    webiopi().callMacro("pwm4WriteBrake", [commandID++]);
+    rate12Prev = 0;
+    rate18Prev = 0;
+    rate27Prev = 0;
     rate22Prev = 0;
 }
 
@@ -192,9 +192,9 @@ function clickEvent(e){
         var rate = maxSpeed*(mTouchOffsetLeft + mTouchWidth/3 - e.pageX)/(mTouchWidth/3);
 
         webiopi().callMacro("pwm4Write", [0, rate, rate, 0, commandID++]);
-        rate25Prev = 0;
-        rate24Prev = rate;
-        rate23Prev = rate;
+        rate12Prev = 0;
+        rate18Prev = rate;
+        rate27Prev = rate;
         rate22Prev = 0;
     }else if(e.pageX < mTouchOffsetLeft + 2*mTouchWidth/3){ // 前後移動
         // 左右の車輪の速さの違いの補正
@@ -203,9 +203,9 @@ function clickEvent(e){
 
         if(e.pageY >= mTouchOffsetTop + 2*mTouchHeight/5 && e.pageY < mTouchOffsetTop + 3*mTouchHeight/5){
             webiopi().callMacro("pwm4Write", [0, 0, 0, 0, commandID++]);
-            rate25Prev = 0;
-            rate24Prev = 0;
-            rate23Prev = 0;
+            rate12Prev = 0;
+            rate18Prev = 0;
+            rate27Prev = 0;
             rate22Prev = 0;
         }else if(e.pageY < mTouchOffsetTop + mTouchHeight/2){
             var rate = maxSpeed*(mTouchOffsetTop + mTouchHeight/2 - e.pageY)/(mTouchHeight/2);
@@ -216,9 +216,9 @@ function clickEvent(e){
             if(modR > 1.0){ modR = 1.0; }
 
             webiopi().callMacro("pwm4Write", [modL, 0, modR, 0, commandID++]);
-            rate25Prev = modL;
-            rate24Prev = 0;
-            rate23Prev = modR;
+            rate12Prev = modL;
+            rate18Prev = 0;
+            rate27Prev = modR;
             rate22Prev = 0;
         }else{
             var rate = maxSpeed*(e.pageY - mTouchOffsetTop - mTouchHeight/2)/(mTouchHeight/2);
@@ -229,9 +229,9 @@ function clickEvent(e){
             if(modR > 1.0){ modR = 1.0; }
 
             webiopi().callMacro("pwm4Write", [0, modL, 0, modR, commandID++]);
-            rate25Prev = 0;
-            rate24Prev = modL;
-            rate23Prev = 0;
+            rate12Prev = 0;
+            rate18Prev = modL;
+            rate27Prev = 0;
             rate22Prev = modR;
         }
 
@@ -239,9 +239,9 @@ function clickEvent(e){
         var rate = maxSpeed*(e.pageX - mTouchOffsetLeft - 2*mTouchWidth/3)/(mTouchWidth/3);
 
         webiopi().callMacro("pwm4Write", [rate, 0, 0, rate, commandID++]);
-        rate25Prev = rate;
-        rate24Prev = 0;
-        rate23Prev = 0;
+        rate12Prev = rate;
+        rate18Prev = 0;
+        rate27Prev = 0;
         rate22Prev = rate;
     }
 
